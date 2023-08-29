@@ -1,0 +1,35 @@
+{
+  "name": "swagger-generate-request",
+  "private": true,
+  "version": "0.0.1",
+  "type": "module",
+  "scripts": {
+    "prepare": "husky install",
+    "dev": "ts-node-esm  ./src/fetch/index.ts",
+    "test": "vitest run",
+    "coverage": "vitest run --coverage",
+    "fix": "eslint --fix --ext .js,.ts,.vue .",
+    "prettier": "prettier --write ."
+  },
+  "dependencies": {
+    "@cc-heart/utils": "^4.0.1",
+    "@types/node": "^20.5.7"
+  },
+  "devDependencies": {
+    "@cc-heart/eslint-config": "^0.0.5",
+    "@vitest/coverage-v8": "^0.34.3",
+    "husky": "^8.0.3",
+    "lint-staged": "^13.3.0",
+    "prettier": "^2.8.8",
+    "tsconfig-paths": "^4.2.0",
+    "typescript": "^5.2.2",
+    "vitest": "^0.34.3"
+  },
+  "lint-staged": {
+    "*.{vue,js,ts,jsx,tsx,json}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{md}": "prettier --write"
+  }
+}
