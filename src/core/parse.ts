@@ -10,8 +10,7 @@ export function getSchemas(components: IComponents) {
     Reflect.set(container, key, {})
     const fieldsValue = Reflect.get(container, key)
     const dtoTarget = Reflect.get(schemas, key)
-    const { properties, required = [] } = dtoTarget
-    if (!properties) return
+    const { properties = {}, required = [] } = dtoTarget
 
     Object.keys(properties).forEach((property) => {
       const description = Reflect.get(properties, property)
@@ -40,8 +39,7 @@ export function getRefDtoNames(pathVal: IPath): string[] {
 }
 
 export function getParams(pathVal: IPath) {
-  const { parameters } = pathVal
-  if (!parameters || !Array.isArray(parameters)) return []
+  const { parameters = [] } = pathVal
   return parameters.map((param) => {
     return {
       field: param.name,

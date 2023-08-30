@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
+  generator,
   getRefDtoNames,
   getSchemas,
   parsePaths,
@@ -234,5 +235,90 @@ describe('index test module', () => {
       },
     })
     expect(parseSwagger(swaggerApi)).toEqual(resultMap)
+  })
+
+  it('generator from swagger api', () => {
+    const swaggerApi = {
+      paths: {
+        '/user/{id}': {
+          patch: {
+            operationId: 'UserController_update',
+            summary: '更新用户信息',
+            parameters: [
+              {
+                name: 'id',
+                required: true,
+                in: 'path',
+                schema: {
+                  type: 'string',
+                },
+              },
+            ],
+            requestBody: {
+              required: true,
+              content: {
+                'application/json': {
+                  schema: {
+                    $ref: '#/components/schemas/UpdateUserDto',
+                  },
+                },
+              },
+            },
+            responses: {
+              '200': {
+                description: '',
+              },
+            },
+            tags: ['用户模块'],
+          },
+          delete: {
+            operationId: 'UserController_remove',
+            summary: '删除用户信息',
+            parameters: [
+              {
+                name: 'id',
+                required: true,
+                in: 'path',
+                schema: {
+                  type: 'string',
+                },
+              },
+            ],
+            responses: {
+              '200': {
+                description: '',
+              },
+            },
+            tags: ['用户模块'],
+          },
+        },
+      },
+
+      components: {
+        schemas: {
+          UpdateUserDto: {
+            type: 'object',
+            properties: {},
+          },
+        },
+      },
+    }
+    const result = [
+      {
+        path: '/user/${id}',
+        method: 'patch',
+        params: [{ field: 'id', require: true, type: 'string' }],
+        interface: {},
+        trait: ['UpdateUserDto'],
+      },
+      {
+        path: '/user/${id}',
+        method: 'delete',
+        params: [{ field: 'id', require: true, type: 'string' }],
+        interface: {},
+        trait: [],
+      },
+    ]
+    expect(generator(swaggerApi)).toEqual(result)
   })
 })
