@@ -1,6 +1,13 @@
 import { hasOwn } from '@cc-heart/utils'
 import { urlToRequestPath } from './utils.js'
-import type { IComponents, IPath, SwaggerApi, methods } from './types'
+import type {
+  IComponents,
+  IPath,
+  SwaggerApi,
+  methods,
+  GeneratorList,
+  ApiMeta,
+} from './types'
 
 export function getSchemas(components: IComponents) {
   const { schemas } = components
@@ -49,11 +56,6 @@ export function getParams(pathVal: IPath) {
   })
 }
 
-type ApiMeta = {
-  trait: string[]
-  interface: Record<string, any>
-}
-
 export function parsePaths(paths: SwaggerApi['paths']) {
   const pathsMap = new Map<string, methods<ApiMeta>>()
 
@@ -63,9 +65,10 @@ export function parsePaths(paths: SwaggerApi['paths']) {
     const pathVal = Reflect.get(paths, path)
 
     Object.keys(pathVal).forEach((method) => {
-      const target = Reflect.get(pathVal, method)
+      const target = Reflect.get(pathVal, method) as IPath
       Reflect.set(val, method, {
         // request trait names
+        operationId: target.operationId,
         trait: getRefDtoNames(target),
         params: getParams(target),
         interface: {},
@@ -93,26 +96,19 @@ export function parseSwagger(api: SwaggerApi) {
   return resultApis
 }
 
-interface GeneratorList {
-  path: string
-  method: string
-  params: ReturnType<typeof getParams>[]
-  interface: ApiMeta['interface'][]
-  trait: string[]
-}
-
 export function generator(Swagger: SwaggerApi) {
   const apiMeta = parseSwagger(Swagger)
-  const generatorList: GeneratorList[] = []
+  const generatorList: GeneratorList<typeof getParams>[] = []
   apiMeta.forEach((val, path) => {
     Object.keys(val).forEach((method) => {
-      const target = Reflect.get(val, method)
+      const target = Reflect.get(val, method) as IPath
       generatorList.push({
         path,
         method,
         params: target.params,
         interface: target.interface,
         trait: target.trait,
+        operationId: target.operationId,
       })
     })
   })

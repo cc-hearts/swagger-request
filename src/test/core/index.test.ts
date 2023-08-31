@@ -47,6 +47,7 @@ describe('index test module', () => {
 
   it('get ref dto name list', () => {
     const pathVal = {
+      operationId: 'UserController_createUser',
       requestBody: {
         content: {
           'application/json': {
@@ -92,6 +93,7 @@ describe('index test module', () => {
         interface: {},
         trait: ['CreateUserDto'],
         params: [],
+        operationId: 'UserController_createUser',
       },
     })
     expect(parsePaths(paths)).toEqual(resultMap)

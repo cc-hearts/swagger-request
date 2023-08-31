@@ -1,3 +1,4 @@
+import type { fn } from '@cc-heart/utils/helper'
 export interface SwaggerApi {
   components: IComponents
   paths: Record<string, IPaths>
@@ -14,6 +15,7 @@ export interface IPath {
   required?: boolean
   requestBody?: IRequestBody
   parameters?: IParameters[]
+  operationId: string
   [k: string]: any
 }
 
@@ -49,4 +51,18 @@ interface properties {
   type: string
   example?: string
   description?: string
+}
+
+export interface GeneratorList<T extends fn = fn> {
+  path: string
+  method: string
+  params: ReturnType<T>[]
+  interface: ApiMeta['interface'][]
+  trait: string[]
+  operationId: string
+}
+
+export type ApiMeta = {
+  trait: string[]
+  interface: Record<string, any>
 }

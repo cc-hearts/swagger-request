@@ -29,3 +29,5 @@ app.development.yaml
 # vercel ci error
 pnpm-lock.yaml
 coverage
+swagger.json
+_apis
