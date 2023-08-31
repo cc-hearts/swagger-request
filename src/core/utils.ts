@@ -11,3 +11,9 @@ export function urlToRequestPath(url: string) {
     })
     .join('/')
 }
+
+export function getDynamicParams(url: string) {
+  const params = url.match(/\${.*?}/g)
+  if (!params) return []
+  return params.map((item) => item.replace(/\${|}/g, ''))
+}

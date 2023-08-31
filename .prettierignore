@@ -2,3 +2,4 @@
 dist/
 
 *.template.js
+_apis/
