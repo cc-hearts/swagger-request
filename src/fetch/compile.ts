@@ -60,9 +60,8 @@ export function compileParams(
   params: ReturnType<typeof getParams>,
   dynamicParams: string[]
 ) {
-
   const paramsList = params.reduce<string[]>((acc, cur) => {
-    const index = dynamicParams.findIndex(item => item === cur.field)
+    const index = dynamicParams.findIndex((item) => item === cur.field)
     if (index > -1) {
       dynamicParams.splice(index, 1)
     }
@@ -72,7 +71,7 @@ export function compileParams(
   if (isExistDataParamsField) {
     paramsList.unshift('data: T')
   }
-  const dynamicParamsList = dynamicParams.map(item => `${item}: any`)
+  const dynamicParamsList = dynamicParams.map((item) => `${item}: any`)
   return [...paramsList, ...dynamicParamsList].join(', ')
 }
 
@@ -86,7 +85,6 @@ export function compileRequestParams(
     return ''
   }
   let paramsList = params.reduce<string[]>((acc, cur) => {
-
     if (dynamicParams.includes(cur.field)) return acc
     acc.push(cur.field)
     return acc

@@ -6,15 +6,19 @@ import {
   compileRequestParams,
   FetchData,
 } from './compile.js'
-import Swagger from '../../swagger.json' assert { type: 'json' }
 import { hasOwn } from '@cc-heart/utils'
 import { join } from 'path'
 import { access, constants, mkdir, writeFile } from 'fs/promises'
-import config from './config.js'
+import { loadingConfig } from './config.js'
+import { request } from './request.js'
+import { defineOptions } from './types.js'
 type Files = Record<string, Record<string, string>>
 
-export async function generateCodeFromSwagger() {
-  const api = generator(Swagger as unknown as SwaggerApi)
+export async function generateCodeFromSwagger(
+  swagger: SwaggerApi,
+  config: defineOptions
+) {
+  const api = generator(swagger)
   const swaggerMetaMap = categorizationByOperationId(api)
   const files = {} as Files
   const executing = []
@@ -24,6 +28,7 @@ export async function generateCodeFromSwagger() {
     if (!hasOwn(files, fileName)) {
       files[fileName] = {}
     }
+
     const isExistTransformFunctionImportName =
       !!config.requestFunctionImportName
     let __imports__: string = [
@@ -47,7 +52,9 @@ export async function generateCodeFromSwagger() {
         isExistDataParamsField = true
       }
       const dynamicParams = getDynamicParams(_data.path)
-      const params = compileParams(isExistDataParamsField, _data.params, [...dynamicParams])
+      const params = compileParams(isExistDataParamsField, _data.params, [
+        ...dynamicParams,
+      ])
       const requestParams = compileRequestParams(
         isExistDataParamsField,
         _data.params,
@@ -104,9 +111,12 @@ async function generatorFiles(files: Files, rootDirectory: string) {
 }
 
 export async function composition() {
-  const { rootDirectory } = config
-  const files = await generateCodeFromSwagger()
+  const config = await loadingConfig()
+  const { swaggerUrl, rootDirectory } = config
+  if (!swaggerUrl) {
+    throw new Error('swaggerUrl is required')
+  }
+  const swaggerApi = await request<SwaggerApi>(swaggerUrl)
+  const files = await generateCodeFromSwagger(swaggerApi, config)
   await generatorFiles(files, rootDirectory)
 }
-
-composition()

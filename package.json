@@ -3,6 +3,9 @@
   "private": true,
   "version": "0.0.1",
   "type": "module",
+  "bin": {
+    "swagger-fetch": "./bin/fetch.mjs"
+  },
   "scripts": {
     "prepare": "husky install",
     "dev": "ts-node-esm  ./src/fetch/index.ts",
@@ -13,8 +16,12 @@
   },
   "dependencies": {
     "@cc-heart/utils": "^4.0.1",
+    "@cc-heart/utils-service": "^0.0.2",
+    "@rollup/plugin-commonjs": "^25.0.4",
     "@types/node": "^20.5.7",
-    "handlebars": "^4.7.8"
+    "handlebars": "^4.7.8",
+    "node-fetch": "^3.3.2",
+    "rollup": "^3.28.1"
   },
   "devDependencies": {
     "@cc-heart/eslint-config": "^0.0.5",
@@ -22,7 +29,9 @@
     "husky": "^8.0.3",
     "lint-staged": "^13.3.0",
     "prettier": "^2.8.8",
+    "rollup-plugin-typescript2": "^0.35.0",
     "tsconfig-paths": "^4.2.0",
+    "tslib": "^2.6.2",
     "typescript": "^5.2.2",
     "vitest": "^0.34.3"
   },

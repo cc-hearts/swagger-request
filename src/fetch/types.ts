@@ -5,8 +5,7 @@ export interface CompileOptions {
 
 export interface defineOptions {
   rootDirectory: string
-
+  swaggerUrl: string
   importPaths: string | (() => string)
-
   requestFunctionImportName?: (name: string) => string
 }
