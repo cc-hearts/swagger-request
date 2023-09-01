@@ -1,9 +1,9 @@
 import { readFile, rm, mkdir, writeFile, access, constants } from 'fs/promises';
 import Handlebars from 'handlebars';
 import { join, resolve } from 'path';
-import * as Rollup from 'rollup';
 import { readFileSync, existsSync } from 'fs';
 import 'url';
+import * as Rollup from 'rollup';
 import fetch from 'node-fetch';
 
 function hasOwn(obj, prop) {
@@ -136,6 +136,16 @@ function generator(Swagger) {
     return generatorList;
 }
 
+const DEFAULT_CONFIG_FILES = [
+    'swaggerRequest.config.js',
+    'swaggerRequest.config.mjs',
+    'swaggerRequest.config.ts',
+    'swaggerRequest.config.cjs',
+    'swaggerRequest.config.mts',
+    'swaggerRequest.config.cts',
+];
+const TEMPLATE_PATH = 'src/cli/request.template.js';
+
 async function compile(target, options = {}) {
     const temp = Handlebars.compile(await readTemplate());
     const { isGeneratorImportSyntax, isExistDataParamsField } = options;
@@ -151,7 +161,7 @@ async function compile(target, options = {}) {
     });
 }
 async function readTemplate() {
-    return await readFile(join(process.cwd(), 'src/fetch/fetch.template.js'), 'utf-8');
+    return await readFile(join(process.cwd(), TEMPLATE_PATH), 'utf-8');
 }
 function categorizationByOperationId(target) {
     const map = new Map();
@@ -200,15 +210,6 @@ function compileRequestParams(isExistDataParamsField, params, dynamicParams) {
         return '';
     return `{ ${paramsList.join(', ')} }`;
 }
-
-const DEFAULT_CONFIG_FILES = [
-    'swaggerRequest.config.js',
-    'swaggerRequest.config.mjs',
-    'swaggerRequest.config.ts',
-    'swaggerRequest.config.cjs',
-    'swaggerRequest.config.mts',
-    'swaggerRequest.config.cts',
-];
 
 function getPackage(path) {
     path = path || resolve(process.cwd(), 'package.json');
@@ -265,7 +266,7 @@ async function loadingConfig() {
     return defaultConfig;
 }
 
-function request(url, options = {}) {
+async function request(url, options = {}) {
     if (!options.headers)
         options.headers = {
             'Content-Type': 'application/json',

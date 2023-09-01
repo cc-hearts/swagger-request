@@ -1,14 +1,15 @@
-import { type GeneratorList, type getParams } from '@/core'
+import type { GeneratorList, getParams } from '@/core'
 import { readFile } from 'fs/promises'
 import Handlebars from 'handlebars'
 import { join } from 'path'
+import { TEMPLATE_PATH } from './constant.js'
 import type { CompileOptions } from './types'
-export type FetchData = Data & { name: string; _method?: string }
+export type TransformConfigData = Data & { name: string; _method?: string }
 
 type Data = GeneratorList<typeof getParams>
 
 export async function compile(
-  target: FetchData & {
+  target: TransformConfigData & {
     __imports__: string
     paths: string
     params: string
@@ -33,20 +34,20 @@ export async function compile(
 
 async function readTemplate() {
   return await readFile(
-    join(process.cwd(), 'src/fetch/fetch.template.js'),
+    join(process.cwd(), TEMPLATE_PATH),
     'utf-8'
   )
 }
 
 export function categorizationByOperationId(target: Data[]) {
-  const map = new Map<string, FetchData>()
+  const map = new Map<string, TransformConfigData>()
 
   target.forEach((item) => {
     const { operationId } = item
     const [controllerName, methodName] = operationId.split('_')
 
     if (!map.has(controllerName)) {
-      map.set(controllerName, {} as FetchData)
+      map.set(controllerName, {} as TransformConfigData)
     }
 
     const controller = map.get(controllerName)!

@@ -4,7 +4,7 @@ import {
   compile,
   compileParams,
   compileRequestParams,
-  FetchData,
+  type TransformConfigData,
 } from './compile.js'
 import { hasOwn } from '@cc-heart/utils'
 import { join } from 'path'
@@ -32,7 +32,7 @@ export async function generateCodeFromSwagger(
     const isExistTransformFunctionImportName =
       !!config.requestFunctionImportName
     let __imports__: string = [
-      ...Object.values(swaggerMeta).reduce((acc, cur: FetchData) => {
+      ...Object.values(swaggerMeta).reduce((acc, cur: TransformConfigData) => {
         if (isExistTransformFunctionImportName) {
           cur._method =
             config.requestFunctionImportName!(cur.method) || cur.method

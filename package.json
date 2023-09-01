@@ -4,11 +4,11 @@
   "version": "0.0.1",
   "type": "module",
   "bin": {
-    "swagger-fetch": "./bin/fetch.mjs"
+    "swagger-request": "./bin/cli.mjs"
   },
   "scripts": {
     "prepare": "husky install",
-    "dev": "ts-node-esm  ./src/fetch/index.ts",
+    "dev": "ts-node-esm  ./src/bin/cli.ts",
     "test": "vitest run",
     "coverage": "vitest run --coverage",
     "fix": "eslint --fix --ext .js,.ts,.vue .",

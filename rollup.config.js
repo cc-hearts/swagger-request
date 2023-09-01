@@ -1,9 +1,9 @@
 import typescript from 'rollup-plugin-typescript2'
 
 export default {
-  input: './src/bin/fetch.ts',
+  input: './src/bin/cli.ts',
   output: {
-    file: './bin/fetch.mjs',
+    file: './bin/cli.mjs',
     format: 'esm',
   },
   plugins: [typescript()],
