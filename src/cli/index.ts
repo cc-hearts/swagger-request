@@ -119,4 +119,5 @@ export async function composition() {
   const swaggerApi = await request<SwaggerApi>(swaggerUrl)
   const files = await generateCodeFromSwagger(swaggerApi, config)
   await generatorFiles(files, rootDirectory)
+  console.log('🎉 generate success: ' + join(process.cwd(), rootDirectory));
 }

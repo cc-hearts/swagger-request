@@ -9,6 +9,7 @@
   "scripts": {
     "prepare": "husky install",
     "dev": "ts-node-esm  ./src/bin/cli.ts",
+    "build": "rollup -c",
     "test": "vitest run",
     "coverage": "vitest run --coverage",
     "fix": "eslint --fix --ext .js,.ts,.vue .",
@@ -18,6 +19,7 @@
     "@cc-heart/utils": "^4.0.1",
     "@cc-heart/utils-service": "^0.0.2",
     "@rollup/plugin-commonjs": "^25.0.4",
+    "@rollup/plugin-typescript": "^11.1.3",
     "@types/node": "^20.5.7",
     "handlebars": "^4.7.8",
     "node-fetch": "^3.3.2",

@@ -1,9 +1,11 @@
-import { readFile, rm, mkdir, writeFile, access, constants } from 'fs/promises';
+import { readFile, rm, writeFile, mkdir, access, constants } from 'fs/promises';
 import Handlebars from 'handlebars';
 import { join, resolve } from 'path';
 import { readFileSync, existsSync } from 'fs';
 import 'url';
 import * as Rollup from 'rollup';
+import commonjs from '@rollup/plugin-commonjs';
+import typescript from '@rollup/plugin-typescript';
 import fetch from 'node-fetch';
 
 function hasOwn(obj, prop) {
@@ -217,8 +219,23 @@ function getPackage(path) {
     return JSON.parse(packages);
 }
 
-function isESM() {
+async function isESM(path) {
+    if (path) {
+        if (isCommonJsExtension(path))
+            return false;
+        const file = await readFile(path, 'utf8');
+        return !file.includes('module.exports');
+    }
     return getPackage().type === 'module';
+}
+function getFileExtension(path) {
+    return path.split('.').slice(-1)[0];
+}
+function isTS(path) {
+    return ['mts', 'cts', 'ts'].includes(getFileExtension(path));
+}
+function isCommonJsExtension(path) {
+    return ['cts', 'cjs'].includes(getFileExtension(path));
 }
 
 const defaultConfig = {
@@ -227,6 +244,31 @@ const defaultConfig = {
     swaggerUrl: '',
     requestFunctionImportName: (name) => capitalize(name),
 };
+async function loadRollupPlugins(path) {
+    const plugins = [];
+    if (!(await isESM(path))) {
+        plugins.push(commonjs());
+    }
+    return plugins;
+}
+async function transformTsToJs(filePath, inputOptions, outputOptions) {
+    if (isTS(filePath)) {
+        (inputOptions.plugins || (inputOptions.plugins = []));
+        if (Array.isArray(inputOptions.plugins)) {
+            inputOptions.plugins = [...inputOptions.plugins, typescript()];
+        }
+        const bundle = await compileBundle(inputOptions);
+        const { output } = await bundle.generate(outputOptions);
+        const { code } = output[0];
+        const tsToJsPath = join(process.cwd(), './__config.__tsTransformJs.js');
+        await writeFile(tsToJsPath, code, 'utf8');
+        return tsToJsPath;
+    }
+    return filePath;
+}
+async function compileBundle(inputOptions) {
+    return await Rollup.rollup(inputOptions);
+}
 // loading config files
 async function loadingConfig() {
     let resolvePath;
@@ -243,26 +285,33 @@ async function loadingConfig() {
     }
     const rollupConfig = {
         input: resolvePath,
-        plugins: isESM()
-            ? []
-            : ['@rollup/plugin-commonjs'],
+        plugins: await loadRollupPlugins(resolvePath)
     };
-    const bundle = await Rollup.rollup(rollupConfig);
     const outputOptions = {
         file: join(process.cwd(), './__config__.js'),
         format: 'esm',
     };
+    const rmPathList = [];
+    const bundlePath = await transformTsToJs(resolvePath, rollupConfig, outputOptions);
+    if (rollupConfig.input !== bundlePath) {
+        rmPathList.push(bundlePath);
+    }
+    rollupConfig.input = bundlePath;
+    const bundle = await Rollup.rollup(rollupConfig);
     await bundle.write(outputOptions);
+    rmPathList.push(outputOptions.file);
     try {
         // @ts-ignore
         const { default: config } = await import(outputOptions.file);
-        await rm(outputOptions.file);
         return {
             ...defaultConfig,
             ...config,
         };
     }
     catch (e) { }
+    finally {
+        rmPathList.forEach((path) => rm(path));
+    }
     return defaultConfig;
 }
 
@@ -368,6 +417,7 @@ async function composition() {
     const swaggerApi = await request(swaggerUrl);
     const files = await generateCodeFromSwagger(swaggerApi, config);
     await generatorFiles(files, rootDirectory);
+    console.log('🎉 generate success: ' + join(process.cwd(), rootDirectory));
 }
 
 composition();
