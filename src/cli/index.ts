@@ -12,7 +12,7 @@ import { access, constants, mkdir, writeFile } from 'fs/promises'
 import { loadingConfig } from './config.js'
 import { request } from './request.js'
 import { defineOptions } from './types.js'
-type Files = Record<string, Record<string, string>>
+type Files = Record<string, Map<string, string>>
 
 export async function generateCodeFromSwagger(
   swagger: SwaggerApi,
@@ -26,7 +26,7 @@ export async function generateCodeFromSwagger(
 
   for (const [fileName, swaggerMeta] of swaggerMetaMap) {
     if (!hasOwn(files, fileName)) {
-      files[fileName] = {}
+      files[fileName] = new Map<string, string>()
     }
 
     const isExistTransformFunctionImportName =
@@ -44,7 +44,8 @@ export async function generateCodeFromSwagger(
     ].join(',')
 
     const target = files[fileName]
-    const result = Object.keys(swaggerMeta).map(async (methodName, index) => {
+    const waggerMetaKeys = Object.keys(swaggerMeta)
+    const result = waggerMetaKeys.map(async (methodName, index) => {
       const _data = Reflect.get(swaggerMeta, methodName)
 
       let isExistDataParamsField = false
@@ -60,7 +61,7 @@ export async function generateCodeFromSwagger(
         _data.params,
         [...dynamicParams]
       )
-      target[methodName] = await compile(
+      return await compile(
         {
           ..._data,
           __imports__,
@@ -75,8 +76,12 @@ export async function generateCodeFromSwagger(
         }
       )
     })
-
-    executing.push(Promise.all(result))
+    const res = Promise.all(result).then(generatedMethodList => {
+      waggerMetaKeys.map((methodName, index) => {
+        target.set(methodName, generatedMethodList[index])
+      })
+    })
+    executing.push(res)
   }
   await Promise.all(executing)
   return files
@@ -103,8 +108,12 @@ async function generatorFiles(files: Files, rootDirectory: string) {
 
   const flag = Object.keys(files).map(async (fileName) => {
     const paths = _join(fileName)
-    const fileValue = Object.values(files[fileName]).join('\n')
-    await writeFile(paths, fileValue)
+    const methodList: string[] = []
+    for (const [, value] of files[fileName]) {
+      methodList.push(value)
+    }
+
+    await writeFile(paths, methodList.join('\n'))
   })
 
   await Promise.all(flag)
